@@ -13,7 +13,6 @@ Build-Type:          Simple
 License:             BSD3
 License-File:        LICENSE
 Cabal-Version:       >= 1.6
-Homepage:            http://codevine.org/vty-ui/
 
 Source-Repository head
   type:     git
