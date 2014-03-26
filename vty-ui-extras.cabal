@@ -1,5 +1,5 @@
 Name:                vty-ui-extras
-Version:             0.2
+Version:             0.3
 Synopsis:
   Extra vty-ui functionality not included in the core library
 
@@ -24,8 +24,7 @@ Library
     vty >= 4.7.0.18,
     vty-ui >= 1.6,
     text >= 0.11,
-    regex-pcre >= 0.94,
-    regex-base >= 0.93
+    text-icu
 
   GHC-Options:       -Wall
 

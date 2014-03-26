@@ -4,12 +4,12 @@ module Graphics.Vty.Widgets.Extras.Text
     )
 where
 
-import Text.Regex.Base (RegexLike, matchAll)
-
+import Control.Applicative
 import Graphics.Vty.Widgets.Text (Formatter(..))
 import Graphics.Vty (Attr, def_attr)
 import Text.Trans.Tokenize (TextStreamEntity(..), Token(..), TextStream(..))
 import qualified Data.Text as T
+import qualified Data.Text.ICU.Regex as R
 
 -- |A highlight formatter takes a regular expression used to scan the
 -- text and an attribute to assign to matches.  The regular expression
@@ -18,19 +18,26 @@ import qualified Data.Text as T
 -- paragraphs, or text spanning multiple lines.  If you have need of
 -- that kind of functionality, apply your own attributes with your own
 -- regular expression prior to calling 'setTextWithAttrs'.
-highlight :: (RegexLike r T.Text) => r -> Attr -> Formatter
+highlight :: R.Regex -> Attr -> Formatter
 highlight regex attr = Formatter $
-    \_ (TS ts) -> return $ TS $ map highlightToken ts
+    \_ (TS ts) -> TS <$> mapM highlightToken ts
         where
-          highlightToken :: TextStreamEntity Attr -> TextStreamEntity Attr
-          highlightToken NL = NL
+          highlightToken :: TextStreamEntity Attr -> IO (TextStreamEntity Attr)
+          highlightToken NL = return NL
           highlightToken (T t) =
               if tokenAttr t /= def_attr
-              then T t
-              else T (highlightToken' t)
+              then return $ T t
+              else T <$> (highlightToken' t)
 
-          highlightToken' :: Token Attr -> Token Attr
-          highlightToken' t =
-              if null $ matchAll regex $ tokenStr t
-              then t
-              else t { tokenAttr = attr }
+          highlightToken' :: Token Attr -> IO (Token Attr)
+          highlightToken' t = do
+              R.setText regex $ tokenStr t
+              found <- R.find regex 0
+              case found of
+                  False -> return t
+                  True -> do
+                      theStart <- R.start regex 0
+                      theEnd <- R.end regex 0
+                      if theStart == Just 0 && theEnd == Just (toEnum $ T.length (tokenStr t)) then
+                          return $ t { tokenAttr = attr } else
+                          return t
