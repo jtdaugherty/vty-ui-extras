@@ -7,7 +7,7 @@ where
 import Control.Applicative
 import Data.Maybe
 import Graphics.Vty.Widgets.Text (Formatter(..))
-import Graphics.Vty (Attr, def_attr)
+import Graphics.Vty (Attr, defAttr)
 import Text.Trans.Tokenize (TextStreamEntity(..), Token(..), TextStream(..))
 import qualified Data.Text as T
 import qualified Data.Text.ICU.Regex as R
@@ -26,7 +26,7 @@ highlight regex attr = Formatter $
           highlightToken :: TextStreamEntity Attr -> IO [TextStreamEntity Attr]
           highlightToken NL = return [NL]
           highlightToken (T t) =
-              if tokenAttr t /= def_attr
+              if tokenAttr t /= defAttr
               then return [T t]
               else (T <$>) <$> (highlightToken' t)
 
